@@ -31,8 +31,8 @@ class RegisterRequest extends FormRequest
                 'required', 'max:64', 'string',
                 Password::min(8)->uncompromised()
             ],
-            'country'   => ['string', 'max:32'],
-            'user_type' => ['required', 'string', Rule::in(['freelancer', 'employer'])],
+            // 'country'   => ['string', 'max:32'],
+            // 'user_type' => ['required', 'string', Rule::in(['freelancer', 'employer'])],
         ];
     }
 }
