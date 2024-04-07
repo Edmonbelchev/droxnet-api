@@ -55,4 +55,22 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Scope for user's role
+    public function role()
+    {
+        return $this->hasOne(UserRole::class);
+    }
+
+    // Scope for user's role
+    public function isFreelancer(): bool
+    {
+        return $this->role->role->name === 'freelancer';
+    }
+
+    // Scope for user's role
+    public function isEmployer(): bool
+    {
+        return $this->role->role->name === 'employer';
+    }
 }

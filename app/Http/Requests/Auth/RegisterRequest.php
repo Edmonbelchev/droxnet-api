@@ -9,10 +9,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
 {
-    // 'password'    => [
-    //     'required', 'max:64', 'string',
-    //     Password::min(8)->uncompromised()
-    // ],
     /**
      * Get the validation rules that apply to the request.
      *
@@ -31,8 +27,7 @@ class RegisterRequest extends FormRequest
                 'required', 'max:64', 'string',
                 Password::min(8)->uncompromised()
             ],
-            // 'country'   => ['string', 'max:32'],
-            // 'user_type' => ['required', 'string', Rule::in(['freelancer', 'employer'])],
+            'role' => ['required', 'string', Rule::in(['freelancer', 'employer'])],
         ];
     }
 }

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->enum('name', ['freelancer', 'employer'])->default('freelancer');
-            $table->timestamps();
         });
     }
 

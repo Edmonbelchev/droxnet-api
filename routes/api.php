@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\API\EmailValidateController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Resources\ProfileResource;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
 
@@ -22,4 +21,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('index', 'profile.index')
         ->name('update', 'profile.update')
         ->name('delete', 'profile.destroy');
+
+    // Email validation routes
+    Route::post('/email/validate', [EmailValidateController::class, 'validateEmail'])
+        ->name('email.validate');
+    
+    Route::post('/email/generate-token', [EmailValidateController::class, 'generateToken'])
+        ->name('email.generate-token');
 });

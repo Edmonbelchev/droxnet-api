@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use Ichtrojan\Otp\Otp;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -12,6 +14,7 @@ use Illuminate\Auth\Events\Registered;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\AuthTokenResource;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Notifications\EmailOtpVerification;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -28,10 +31,21 @@ class AuthController extends Controller
 
         DB::transaction(function () use (&$user, $request, &$token) {
             $user->save();
-            $token  = $user->createToken("API TOKEN");
+            $token = $user->createToken("API TOKEN");
 
             event(new Registered($user));
         });
+
+        UserRole::create([
+            'user_id' => $user->id,
+            'role_id' => $request->get('role') === 'freelancer' ? 1 : 2
+        ]);
+
+        $otp = (new Otp)->generate($user->email, 'numeric', 6, 15);
+
+        if($otp->status === true){
+            $user->notify(new EmailOtpVerification($otp->token));
+        }
 
         return AuthTokenResource::make($token);
     }
