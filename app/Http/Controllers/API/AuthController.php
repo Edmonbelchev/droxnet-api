@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
-use Ichtrojan\Otp\Otp;
 use App\Models\UserRole;
 use Illuminate\Http\Request;
+use TechEd\SimplOtp\SimplOtp;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -41,7 +41,7 @@ class AuthController extends Controller
             'role_id' => $request->get('role') === 'freelancer' ? 1 : 2
         ]);
 
-        $otp = (new Otp)->generate($user->email, 'numeric', 6, 15);
+        $otp = SimplOtp::generate($user->email);
 
         if($otp->status === true){
             $user->notify(new EmailOtpVerification($otp->token));

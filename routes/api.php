@@ -1,9 +1,10 @@
 <?php
 
-use App\Http\Controllers\API\EmailValidateController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\UploadFileController;
+use App\Http\Controllers\API\EmailValidateController;
 
 Route::post('/login', [AuthController::class, 'login'])
     ->name('login');
@@ -28,4 +29,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     Route::post('/email/generate-token', [EmailValidateController::class, 'generateToken'])
         ->name('email.generate-token');
+
+    // Temporary file upload routes
+    Route::post('/upload-file', [UploadFileController::class, 'upload'])
+        ->name('file.upload');
 });

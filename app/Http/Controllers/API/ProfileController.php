@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use App\Helpers\FileUploadHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StatusResource;
 use App\Http\Resources\ProfileResource;
@@ -25,22 +26,8 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $profileImage = $user->profile_image; // Existing profile profile_image path
-
-        // if ($request->hasFile('profile_image')) {
-        //     // Get the uploaded file
-        //     $profile_image = $request->file('profile_image');
-
-        //     // Update the user's profile_image column with the URL
-        //     $profileprofile_image = FileUploadHelper::imageUpload('profile_images/', $profile_image, [300, 300]);
-        // }
-
-        // Merge the updated profile_image URL with the rest of the validated data
-        $validatedData = $request->validated();
-        $validatedData['profile_image'] = $profileImage;
-
         // Update the user model with the merged data
-        $user->update($validatedData);
+        $user->update($request->validated());
 
         // Return the updated user profile
         return new ProfileResource($user);

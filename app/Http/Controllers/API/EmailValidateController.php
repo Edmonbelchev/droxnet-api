@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers\API;
 
-use Ichtrojan\Otp\Otp;
+use TechEd\SimplOtp\SimplOtp;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Notifications\EmailOtpVerification;
@@ -15,7 +15,7 @@ class EmailValidateController extends Controller
     {
         $user = auth()->user();
 
-        $otp = (new Otp)->validate($user->email, $request->token);
+        $otp = SimplOtp::validate($user->email, $request->token);
 
         if($otp->status === true){
             $user->email_verified_at = now();
@@ -32,7 +32,7 @@ class EmailValidateController extends Controller
     {
         $user = auth()->user();
 
-        $otp = (new Otp)->generate($user->email, 'numeric', 6, 15);
+        $otp = SimplOtp::generate($user->email);
 
         if($otp->status === true){
             $user->notify(new EmailOtpVerification($otp->token));
