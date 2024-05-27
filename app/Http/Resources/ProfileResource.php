@@ -30,6 +30,7 @@ class ProfileResource extends JsonResource
             'about'          => $this->about,
             'role'           => $this->role->role->name,   
             'email_verified' => $this->email_verified_at !== null,
+            'skills'         => UserSkillsResource::collection($this->whenLoaded('skills'))
         ];
     }
 }

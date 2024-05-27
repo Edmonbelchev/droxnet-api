@@ -28,6 +28,9 @@ class UpdateProfileRequest extends FormRequest
             'date_of_birth'  => ['present', 'nullable', 'date'],
             'hourly_rate'    => ['present', 'nullable', 'int', 'min:0'],
             'company_name'   => ['present', 'nullable', 'string', 'max:255'],
+            'skills'         => ['present', 'nullable', 'array'],
+            'skills.*.id'    => ['required', 'integer', 'exists:skills,id'],
+            'skills.*.rate'  => ['required', 'integer', 'min:10', 'max:100'],
         ];
     }
 }

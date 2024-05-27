@@ -29,8 +29,19 @@ class ProfileController extends Controller
         // Update the user model with the merged data
         $user->update($request->validated());
 
+        // Sync user skills with correct array format
+        $skillsData = collect($request->skills)->mapWithKeys(function ($skill) {
+            return [
+                $skill['id'] => [
+                    'rate' => $skill['rate']
+                ]
+            ];
+        })->toArray();
+
+        $user->skills()->sync($skillsData);
+
         // Return the updated user profile
-        return new ProfileResource($user);
+        return new ProfileResource($user->fresh());
     }
 
     /**
