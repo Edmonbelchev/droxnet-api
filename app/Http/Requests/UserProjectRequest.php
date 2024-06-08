@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class FileUploadRequest extends FormRequest
+class UserProjectRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,9 +14,11 @@ class FileUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file'      => ['required', 'mimes:jpg,jpeg,png,webp,pdf,doc,docx', 'max:5000'],
-            'path'      => ['string', 'max:255'],
-            'dimension' => ['array'],
+            'projects'         => 'present|array',
+            'projects.*.id'    => 'nullable|integer',
+            'projects.*.url'   => 'required|string|max:255',
+            'projects.*.title' => 'required|string|max:255',
+            'projects.*.files' => 'array|present'
         ];
     }
 }

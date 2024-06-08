@@ -31,4 +31,19 @@ class FileUploadHelper
 
         return $fileUrl;
     }
+
+    public static function fileUpload($path, $file)
+    {
+        // Get the uploaded file
+        $uploadedFile = $file;
+        $filePath     = $path . $uploadedFile->hashName();
+
+        // Upload the file to S3
+        $path = Storage::disk('s3')->put($filePath, file_get_contents($uploadedFile));
+
+        // Get the URL of the uploaded file
+        $fileUrl = Storage::disk('s3')->url($filePath);
+
+        return $fileUrl;
+    }
 }

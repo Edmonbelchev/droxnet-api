@@ -4,9 +4,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\SkillController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\Api\UserAwardController;
 use App\Http\Controllers\API\UserSkillController;
 use App\Http\Controllers\API\UploadFileController;
+use App\Http\Controllers\Api\UserProjectController;
 use App\Http\Controllers\API\EmailValidateController;
+use App\Http\Controllers\Api\UserEducationController;
+use App\Http\Controllers\Api\UserExperienceController;
 
 Route::post('/login', [AuthController::class, 'login'])
     ->name('login');
@@ -33,8 +37,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('email.generate-token');
 
     // Temporary file upload routes
-    Route::post('/upload-file', [UploadFileController::class, 'upload'])
-        ->name('file.upload');
+    Route::post('/image-upload', [UploadFileController::class, 'imageUpload'])
+    ->name('file.image-upload');
+
+    Route::post('/file-upload', [UploadFileController::class, 'fileUpload'])
+        ->name('file.file-upload');
 
     // Skill routes
     Route::resource('skills', SkillController::class)
@@ -43,4 +50,28 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // User skills routes
     Route::get('/user/skills', UserSkillController::class)
         ->name('user.skills');
+
+    // User experience routes
+    Route::resource('user-experiences', UserExperienceController::class)
+        ->name('index', 'user-experiences.index')
+        ->name('store', 'user-experiences.store')
+        ->name('delete', 'user-experiences.destroy');
+
+    // User education routes
+    Route::resource('user-educations', UserEducationController::class)
+        ->name('index', 'user-educations.index')
+        ->name('store', 'user-educations.store')
+        ->name('delete', 'user-educations.destroy');
+
+    // User project routes
+    Route::resource('user-projects', UserProjectController::class)
+        ->name('index', 'user-projects.index')
+        ->name('store', 'user-projects.store')
+        ->name('delete', 'user-projects.destroy');
+
+    // User award routes
+    Route::resource('user-awards', UserAwardController::class)
+        ->name('index', 'user-awards.index')
+        ->name('store', 'user-awards.store')
+        ->name('delete', 'user-awards.destroy');
 });

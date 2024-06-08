@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rules\File;
 use Illuminate\Foundation\Http\FormRequest;
 
-class FileUploadRequest extends FormRequest
+class ImageUploadRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,7 +15,7 @@ class FileUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file'      => ['required', 'mimes:jpg,jpeg,png,webp,pdf,doc,docx', 'max:5000'],
+            'file'      => ['required', File::image()->max('5mb')],
             'path'      => ['string', 'max:255'],
             'dimension' => ['array'],
         ];

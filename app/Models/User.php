@@ -80,9 +80,33 @@ class User extends Authenticatable
         return $this->role->role->name === 'employer';
     }
 
-    // Scope for user's skills
+    // Relation for user's skills
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class, 'user_skills')->using(UserSkill::class)->withPivot('rate');
+    }
+
+    // Relation for user's experience
+    public function experiences()
+    {
+        return $this->hasMany(UserExperience::class);
+    }
+
+    // Relation for user's education
+    public function educations()
+    {
+        return $this->hasMany(UserEducation::class);
+    }
+
+    // Relation for user's projects
+    public function projects()
+    {
+        return $this->hasMany(UserProject::class);
+    }
+
+    // Relation for user's awards
+    public function awards()
+    {
+        return $this->hasMany(UserAward::class);
     }
 }
