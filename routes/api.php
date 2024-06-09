@@ -29,6 +29,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('update', 'profile.update')
         ->name('delete', 'profile.destroy');
 
+    Route::put('/change-password', [ProfileController::class, 'changePassword'])
+        ->name('change-password');
+
     // Email validation routes
     Route::post('/email/validate', [EmailValidateController::class, 'validateEmail'])
         ->name('email.validate');

@@ -109,4 +109,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserAward::class);
     }
+
+    // Relation for user's deleted profile
+    public function deletedProfile()
+    {
+        return $this->hasOne(DeletedUser::class);
+    }
 }

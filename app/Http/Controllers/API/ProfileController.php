@@ -5,9 +5,12 @@ namespace App\Http\Controllers\API;
 use App\Models\User;
 use App\Helpers\FileUploadHelper;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\StatusResource;
 use App\Http\Resources\ProfileResource;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\DeleteProfileRequest;
 
 class ProfileController extends Controller
 {
@@ -47,11 +50,31 @@ class ProfileController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy()
+    public function destroy(DeleteProfileRequest $request)
     {
         $user = auth()->user();
 
         User::where('id', $user->id)->delete();
+
+        // Create a new deleted user record
+        $user->deletedProfile()->create([
+            'reason'      => $request->reason,
+            'description' => $request->description
+        ]);
+
+        return new StatusResource(true);
+    }
+
+    /**
+     * Set new password for the user.
+     */
+    public function changePassword(ChangePasswordRequest $request)
+    {
+        $auth = auth()->user();
+
+        $user           =  User::find($auth->id);
+        $user->password =  Hash::make($request->new_password);
+        $user->save();
 
         return new StatusResource(true);
     }
