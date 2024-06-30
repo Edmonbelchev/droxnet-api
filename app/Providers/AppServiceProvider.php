@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'user_project' => UserProject::class,
             'user_award'   => UserAward::class,
+            'job'          => 'App\Models\Job'
         ]);
     }
 }

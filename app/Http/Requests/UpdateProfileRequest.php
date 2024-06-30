@@ -18,11 +18,12 @@ class UpdateProfileRequest extends FormRequest
         return [
             'first_name'     => ['required', 'string', 'max:255'],
             'last_name'      => ['required', 'string', 'max:255'],
+            'tagline'        => ['sometimes', 'nullable', 'string', 'max:255'],
             'profile_image'  => ['sometimes', 'nullable', 'string', 'max:255'],
             'profile_banner' => ['sometimes', 'nullable', 'string', 'max:255'],
             'gender'         => ['required', Rule::in(['male', 'female'])],
             'phone'          => ['present', 'nullable', 'string', 'max:255'],
-            'country'        => ['required', 'string', 'max:255'],
+            'country'        => ['required', 'string', 'max:64'],
             'city'           => ['present', 'nullable', 'string', 'max:255'],
             'about'          => ['present', 'nullable', 'string'],
             'date_of_birth'  => ['present', 'nullable', 'date'],

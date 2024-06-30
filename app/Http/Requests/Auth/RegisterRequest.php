@@ -27,7 +27,8 @@ class RegisterRequest extends FormRequest
                 'required', 'max:64', 'string',
                 Password::min(8)->uncompromised()
             ],
-            'role' => ['required', 'string', Rule::in(['freelancer', 'employer'])],
+            'country' => ['present', 'string', 'max:64'],
+            'role'    => ['required', 'string', Rule::in(['freelancer', 'employer'])],
         ];
     }
 }

@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\JobController;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\SkillController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\Api\UserAwardController;
@@ -46,12 +48,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/file-upload', [UploadFileController::class, 'fileUpload'])
         ->name('file.file-upload');
 
+    // Users routes
+    Route::resource('users', UserController::class)
+        ->name('index', 'users.index')
+        ->name('show', 'users.show');
+
     // Skill routes
     Route::resource('skills', SkillController::class)
         ->name('index', 'skills.index');
 
     // User skills routes
-    Route::get('/user/skills', UserSkillController::class)
+    Route::get('/user-skills', UserSkillController::class)
         ->name('user.skills');
 
     // User experience routes
@@ -77,4 +84,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('index', 'user-awards.index')
         ->name('store', 'user-awards.store')
         ->name('delete', 'user-awards.destroy');
+
+    // Job routes
+    Route::resource('jobs', JobController::class)
+        ->name('index', 'jobs.index')
+        ->name('store', 'jobs.store')
+        ->name('show', 'jobs.show')
+        ->name('update', 'jobs.update')
+        ->name('delete', 'jobs.destroy');
 });

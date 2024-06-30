@@ -9,7 +9,7 @@ class SearchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'query'          => ['sometimes', 'string', 'min:3'],
+            'query'          => ['sometimes', 'string'],
             'per_page'       => ['sometimes', 'integer', 'min:1', 'max:100'],
             'excluded_skill' => ['sometimes', 'array'],
         ];

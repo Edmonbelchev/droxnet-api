@@ -22,6 +22,7 @@ class User extends Authenticatable
     protected $fillable = [
         'first_name',
         'last_name',
+        'tagline',
         'email',
         'password',
         'gender',
@@ -114,5 +115,11 @@ class User extends Authenticatable
     public function deletedProfile()
     {
         return $this->hasOne(DeletedUser::class);
+    }
+
+    // Relation for user's jobs
+    public function jobs()
+    {
+        return $this->hasMany(Job::class);
     }
 }
