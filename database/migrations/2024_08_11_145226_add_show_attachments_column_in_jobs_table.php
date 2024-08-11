@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('tagline')->after('last_name')->nullable();
+        Schema::table('jobs', function (Blueprint $table) {
+            $table->boolean('show_attachments')->default(false)->after('languages');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('tagline');
+        Schema::table('jobs', function (Blueprint $table) {
+            $table->dropColumn('show_attachments');
         });
     }
 };

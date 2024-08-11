@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\UserRole;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
@@ -12,12 +11,6 @@ class UserSeeder extends Seeder
     {
         User::factory()
             ->count(100)
-            ->create()
-            ->each(function ($user) {
-                UserRole::create([
-                    'user_id' => $user->id,
-                    'role_id' => rand(1, 2)
-                ]);
-            });
+            ->create();
     }
 }

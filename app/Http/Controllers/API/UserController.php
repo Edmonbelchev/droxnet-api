@@ -17,7 +17,7 @@ class UserController extends Controller
     {
         $perPage = $request->query('per_page', 15);
 
-        $result = User::query($perPage);
+        $result = User::freelancer();
 
         if ($request->has('countries')) {
             $result->whereIn('country', $request->countries);

@@ -16,6 +16,7 @@ class UserResource extends JsonResource
     {
         return [
             'id'             => $this->id,
+            'uuid'           => $this->uuid,
             'email'          => $this->email,
             'first_name'     => $this->first_name,
             'last_name'      => $this->last_name,
@@ -29,7 +30,7 @@ class UserResource extends JsonResource
             'phone'          => $this->phone,
             'date_of_birth'  => $this->date_of_birth,
             'about'          => $this->about,
-            'role'           => $this->role->role->name,   
+            'role'           => $this->role,   
             'email_verified' => $this->email_verified_at !== null,
             'skills'         => UserSkillsResource::collection($this->whenLoaded('skills')),
             'educations'     => UserEducationResource::collection($this->whenLoaded('educations')),

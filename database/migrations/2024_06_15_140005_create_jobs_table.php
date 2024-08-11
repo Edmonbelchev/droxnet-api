@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->uuid('user_uuid');
             $table->string('title');
             $table->text('description');
             $table->string('level');
@@ -23,8 +23,12 @@ return new class extends Migration
             $table->string('location');
             $table->json('languages')->nullable();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
+
+            $table->foreign('user_uuid')
+                  ->references('uuid')
+                  ->on('users')
+                  ->onDelete('cascade');
         });
     }
 

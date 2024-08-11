@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
-use App\Models\UserRole;
 use Illuminate\Http\Request;
 use TechEd\SimplOtp\SimplOtp;
 use Illuminate\Support\Facades\DB;
@@ -35,11 +34,6 @@ class AuthController extends Controller
 
             event(new Registered($user));
         });
-
-        UserRole::create([
-            'user_id' => $user->id,
-            'role_id' => $request->get('role') === 'freelancer' ? 1 : 2
-        ]);
 
         $otp = SimplOtp::generate($user->email);
 

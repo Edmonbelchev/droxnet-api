@@ -9,7 +9,7 @@ class UserAward extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'date'];
+    protected $fillable = ['user_uuid', 'title', 'date'];
 
     protected static function boot()
     {

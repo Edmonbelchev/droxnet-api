@@ -3,10 +3,9 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use App\Http\Resources\FileResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserProjectResource extends JsonResource
+class CompanyDetailResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,11 +15,10 @@ class UserProjectResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'        => $this->id,
-            'user_uuid' => $this->user_uuid,
-            'title'     => $this->title,
-            'url'       => $this->url,
-            'files'     => FileResource::collection($this->files),
+            'company_name'   => $this->company_name,
+            'company_website' => $this->company_website,
+            'company_size'   => $this->company_size,
+            'department'     => $this->department
         ];
     }
 }

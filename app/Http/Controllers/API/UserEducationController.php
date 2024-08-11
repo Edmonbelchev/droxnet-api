@@ -18,11 +18,11 @@ class UserEducationController extends Controller
     public function index(Request $request)
     {
         // Request user id and get user Educations
-        if(!$request->user_id){
+        if(!$request->user_uuid){
             return response()->json(['message' => 'User ID is required'], 400);
         }
 
-        $result = UserEducation::where('user_id', $request->user_id)->get();
+        $result = UserEducation::where('user_uuid', $request->user_uuid)->get();
 
         return UserEducationResource::collection($result);
     }
@@ -67,7 +67,7 @@ class UserEducationController extends Controller
     public function update(UserEducationRequest $request, UserEducation $userEducation)
     {
         // Check if user education belongs to the authenticated user
-        if ($userEducation->user_id !== auth()->id()) {
+        if ($userEducation->user_uuid !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -82,7 +82,7 @@ class UserEducationController extends Controller
     public function destroy(UserEducation $userEducation)
     {
         // Check if user education belongs to the authenticated user
-        if ($userEducation->user_id !== auth()->id()) {
+        if ($userEducation->user_uuid !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 

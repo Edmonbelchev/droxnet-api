@@ -19,7 +19,7 @@ class UserAwardController extends Controller
     public function index(Request $request)
     {
         // Request user id and get user experiences
-        if (!$request->user_id) {
+        if (!$request->user_uuid) {
             return response()->json(['message' => 'User ID is required'], 400);
         }
 
@@ -85,7 +85,7 @@ class UserAwardController extends Controller
     public function destroy(UserAward $userAward)
     {
         // Check if the award belongs to the user
-        if ($userAward->user_id !== auth()->id()) {
+        if ($userAward->user_uuid !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 

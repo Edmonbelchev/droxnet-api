@@ -80,7 +80,7 @@ class JobController extends Controller
         $files = [];
 
         if ($request->input('files')) {
-            $files = collect($request->input('files'))->map(function ($filePath) use ($job) {
+            $files = collect($request->input('files'))->map(function ($filePath) {
                 return new File(
                     [
                         'url' => $filePath
@@ -104,7 +104,7 @@ class JobController extends Controller
     public function destroy(Job $job): StatusResource
     {
         // Check if authenticated user is the owner of the job
-        if (auth()->id() !== $job->user_id) {
+        if (auth()->id() !== $job->user_uuid) {
             abort(403, 'Unauthorized');
         }
 

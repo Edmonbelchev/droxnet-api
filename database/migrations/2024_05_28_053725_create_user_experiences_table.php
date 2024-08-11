@@ -13,13 +13,18 @@ return new class extends Migration
     {
         Schema::create('user_experiences', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->uuid('user_uuid');
             $table->string('company_name');
             $table->string('job_title');
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
+
+            $table->foreign('user_uuid')
+                  ->references('uuid')
+                  ->on('users')
+                  ->onDelete('cascade');
         });
     }
 

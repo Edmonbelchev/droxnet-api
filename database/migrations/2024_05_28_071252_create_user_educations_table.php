@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('user_educations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->uuid('user_uuid');
             $table->string('school_name');
             $table->string('field_of_study');
             $table->string('degree');
@@ -21,6 +21,11 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
+
+            $table->foreign('user_uuid')
+                  ->references('uuid')
+                  ->on('users')
+                  ->onDelete('cascade');
         });
     }
 

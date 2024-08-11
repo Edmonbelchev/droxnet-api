@@ -19,7 +19,13 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        return new ProfileResource(auth()->user());
+        $user = auth()->user();
+
+        if ($user->employer()) {
+            $user->load('companyDetail');
+        }
+
+        return new ProfileResource($user);
     }
 
     /**
@@ -43,8 +49,16 @@ class ProfileController extends Controller
 
         $user->skills()->sync($skillsData);
 
+        // Check if user is employer and update company details
+        if ($user->role === 'employer') {
+            $user->companyDetail()->updateOrCreate(
+                ['user_uuid' => $user->uuid],
+                $request->company_details
+            );
+        }
+
         // Return the updated user profile
-        return new ProfileResource($user->fresh());
+        return new ProfileResource($user->fresh('companyDetail'));
     }
 
     /**

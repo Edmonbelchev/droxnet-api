@@ -17,11 +17,11 @@ class UserExperienceController extends Controller
     public function index(Request $request)
     {
         // Request user id and get user experiences
-        if (!$request->user_id) {
+        if (!$request->user_uuid) {
             return response()->json(['message' => 'User ID is required'], 400);
         }
 
-        $result = UserExperience::where('user_id', $request->user_id)->get();
+        $result = UserExperience::where('user_uuid', $request->user_uuid)->get();
 
         return UserExperienceResource::collection($result);
     }
@@ -66,7 +66,7 @@ class UserExperienceController extends Controller
     public function update(UserExperienceRequest $request, UserExperience $userExperience)
     {
         // Check if user experience belongs to the authenticated user
-        if ($userExperience->user_id !== auth()->id()) {
+        if ($userExperience->user_uuid !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -81,7 +81,7 @@ class UserExperienceController extends Controller
     public function destroy(UserExperience $userExperience)
     {
         // Check if user experience belongs to the authenticated user
-        if ($userExperience->user_id !== auth()->id()) {
+        if ($userExperience->user_uuid !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 

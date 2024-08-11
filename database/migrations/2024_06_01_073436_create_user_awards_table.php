@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('user_awards', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->uuid('user_uuid');
             $table->string('title');
             $table->date('date')->nullable();
             $table->timestamps();
+
+            $table->foreign('user_uuid')
+                  ->references('uuid')
+                  ->on('users')
+                  ->onDelete('cascade');
         });
     }
 

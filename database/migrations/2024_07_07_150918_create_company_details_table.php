@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_skills', function (Blueprint $table) {
+        Schema::create('company_details', function (Blueprint $table) {
+            $table->id();
             $table->uuid('user_uuid');
-            $table->foreignId('skill_id')->constrained()->cascadeOnDelete();
-            $table->smallInteger('rate')->default(0);
+            $table->string('company_name');
+            $table->string('company_website')->nullable();
+            $table->string('company_size')->nullable();
+            $table->string('department')->nullable();
+            $table->timestamps();
 
             $table->foreign('user_uuid')
                   ->references('uuid')
@@ -28,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_skills');
+        Schema::dropIfExists('company_details');
     }
 };

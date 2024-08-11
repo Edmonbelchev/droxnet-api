@@ -16,11 +16,11 @@ class UserAwardResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'      => $this->id,
-            'user_id' => $this->user_id,
-            'title'   => $this->title,
-            'date'    => $this->date,
-            'files'   => FileResource::collection($this->files),
+            'id'        => $this->id,
+            'user_uuid' => $this->user_uuid,
+            'title'     => $this->title,
+            'date'      => $this->date,
+            'files'     => FileResource::collection($this->files),
         ];
     }
 }

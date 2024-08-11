@@ -28,10 +28,32 @@ class UpdateProfileRequest extends FormRequest
             'about'          => ['present', 'nullable', 'string'],
             'date_of_birth'  => ['present', 'nullable', 'date'],
             'hourly_rate'    => ['present', 'nullable', 'int', 'min:0'],
-            'company_name'   => ['present', 'nullable', 'string', 'max:255'],
-            'skills'         => ['present', 'nullable', 'array'],
-            'skills.*.id'    => ['required', 'integer', 'exists:skills,id'],
-            'skills.*.rate'  => ['required', 'integer', 'min:10', 'max:100'],
         ];
+
+        if ($this->user()->role === 'freelancer') {
+            $rules['skills'] = ['required', 'array', 'min:1'];
+            $rules['skills.*.id'] = ['required', 'integer', 'exists:skills,id'];
+            $rules['skills.*.rate'] = ['required', 'integer', 'min:10', 'max:100'];
+        } else {
+            $rules['skills'] = ['present', 'nullable', 'array'];
+            $rules['skills.*.id'] = ['required', 'integer', 'exists:skills,id'];
+            $rules['skills.*.rate'] = ['required', 'integer', 'min:10', 'max:100'];
+        }
+
+        if ($this->user()->role === 'employer') {
+            $rules['company_details'] = ['required', 'array'];
+            $rules['company_details.company_name'] = ['required', 'string', 'max:128'];
+            $rules['company_details.company_website'] = ['required', 'string', 'max:255', 'url'];
+            $rules['company_details.company_size'] = ['required', 'string', 'max:64'];
+            $rules['company_details.department'] = ['required', 'string', 'max:128'];
+        } else {
+            $rules['company_details'] = ['sometimes', 'nullable', 'array'];
+            $rules['company_details.company_name'] = ['sometimes', 'nullable', 'string', 'max:128'];
+            $rules['company_details.company_website'] = ['sometimes', 'nullable', 'string', 'max:255', 'url'];
+            $rules['company_details.company_size'] = ['sometimes', 'nullable', 'string', 'max:64'];
+            $rules['company_details.department'] = ['sometimes', 'nullable', 'string', 'max:128'];
+        }
+
+        return $rules;
     }
 }

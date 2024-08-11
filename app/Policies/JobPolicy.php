@@ -9,11 +9,11 @@ class JobPolicy
 {
     public function create(User $user): bool
     {
-        return $user->role->role_id === 2;
+        return $user->role === "employer";
     }
 
     public function update(User $user, Job $job): bool
     {
-        return $user->id === $job->user_id && $user->role->role_id === 2;
+        return $user->uuid === $job->user_uuid && $user->role->role_id === "employer";
     }
 }

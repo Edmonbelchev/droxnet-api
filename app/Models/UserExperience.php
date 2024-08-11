@@ -10,7 +10,7 @@ class UserExperience extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'user_uuid',
         'company_name',
         'job_title',
         'start_date',
@@ -25,6 +25,6 @@ class UserExperience extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_uuid');
     }
 }

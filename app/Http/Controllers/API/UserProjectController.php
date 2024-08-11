@@ -20,7 +20,7 @@ class UserProjectController extends Controller
     public function index(Request $request)
     {
         // Request user id and get user experiences
-        if(!$request->user_id){
+        if(!$request->user_uuid){
             return response()->json(['message' => 'User ID is required'], 400);
         }
 
@@ -87,7 +87,7 @@ class UserProjectController extends Controller
     // public function update(UserProjectRequest $request, UserProject $userProject)
     // {
     //     // Check if the project belongs to the user
-    //     if ($userProject->user_id !== auth()->id()) {
+    //     if ($userProject->user_uuid !== auth()->id()) {
     //         return response()->json(['message' => 'Unauthorized'], 401);
     //     }
 
@@ -111,7 +111,7 @@ class UserProjectController extends Controller
     public function destroy(UserProject $userProject)
     {
         // Check if the project belongs to the user
-        if ($userProject->user_id !== auth()->id()) {
+        if ($userProject->user_uuid !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 

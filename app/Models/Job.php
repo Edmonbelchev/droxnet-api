@@ -22,12 +22,13 @@ class Job extends Model
         'budget',
         'duration',
         'status',
-        'user_id',
+        'user_uuid',
         'category_id',
         'location',
         'type',
         'level',
         'languages',
+        'show_attachments',
     ];
 
     protected $casts = [

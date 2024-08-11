@@ -9,7 +9,7 @@ class UserProject extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'url'];
+    protected $fillable = ['user_uuid', 'title', 'url'];
 
     protected static function boot()
     {

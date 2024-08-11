@@ -3,16 +3,20 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasUuids;
+
+    protected $primaryKey = 'uuid';
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +29,7 @@ class User extends Authenticatable
         'tagline',
         'email',
         'password',
+        'role',
         'gender',
         'phone',
         'country',
@@ -34,7 +39,6 @@ class User extends Authenticatable
         'profile_image',
         'profile_banner',
         'hourly_rate',
-        'company_name',
         'email_verified_at',
     ];
 
@@ -60,25 +64,26 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'uuid' => 'string'
         ];
     }
 
-    // Scope for user's role
-    public function role()
+    // Scope for freelancer
+    public function scopeFreelancer($query)
     {
-        return $this->hasOne(UserRole::class);
+        return $query->where('role', 'freelancer');
     }
 
-    // Scope for user's role
-    public function isFreelancer(): bool
+    // Scope for employer
+    public function scopeEmployer($query)
     {
-        return $this->role->role->name === 'freelancer';
+        return $query->where('role', 'employer');
     }
 
-    // Scope for user's role
-    public function isEmployer(): bool
+    // Relation for user's company detail
+    public function companyDetail()
     {
-        return $this->role->role->name === 'employer';
+        return $this->hasOne(CompanyDetail::class);
     }
 
     // Relation for user's skills

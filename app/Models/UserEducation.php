@@ -12,7 +12,7 @@ class UserEducation extends Model
     protected $table = 'user_educations';
 
     protected $fillable = [
-        'user_id',
+        'user_uuid',
         'school_name',
         'degree',
         'field_of_study',
@@ -28,6 +28,6 @@ class UserEducation extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_uuid');
     }
 }
