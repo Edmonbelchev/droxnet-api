@@ -23,7 +23,7 @@ class UpdateProfileRequest extends FormRequest
             'profile_banner' => ['sometimes', 'nullable', 'string', 'max:255'],
             'gender'         => ['required', Rule::in(['male', 'female'])],
             'phone'          => ['present', 'nullable', 'string', 'max:255'],
-            'country'        => ['required', 'string', 'max:64'],
+            'country'        => ['required', 'string', 'max:32'],
             'city'           => ['present', 'nullable', 'string', 'max:255'],
             'about'          => ['present', 'nullable', 'string'],
             'date_of_birth'  => ['present', 'nullable', 'date'],

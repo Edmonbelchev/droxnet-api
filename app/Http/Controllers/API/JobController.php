@@ -10,19 +10,51 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Resources\JobCollection;
 use App\Http\Resources\StatusResource;
+use App\Http\Requests\JobSearchRequest;
 
 class JobController extends Controller
 {
+    private static array $relations = [
+        'user',
+        'user.companyDetail',
+        'skills',
+        'files'
+    ];
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(JobSearchRequest $request)
     {
         $perPage = request()->query('per_page', 15);
 
-        $result = Job::query();
+        $result = Job::query()->orderByDesc('created_at');
 
-        return JobCollection::make($result->paginate($perPage));
+        if ($request->has('countries')) {
+            $result->whereIn('country', $request->countries);
+        }
+
+        if ($request->has('skills')) {
+            $result->whereHas('skills', function ($query) use ($request) {
+                $query->whereIn('skills.id', $request->skills);
+            });
+        }
+
+        if ($request->has('budget')) {
+            $result->whereBetween('budget', [
+                $request->input('budget.start'),
+                $request->input('budget.end'),
+            ]);
+        }
+
+        if ($request->has('budget_type') && in_array($request->budget_type, ['hourly', 'fixed'])) {
+            $result->where('budget_type', $request->budget_type);
+        }
+
+        if($request->has('duration')) {
+            $result->whereIn('duration', $request->duration);
+        }
+
+        return JobCollection::make($result->with(self::$relations)->paginate($perPage));
     }
 
     /**
@@ -42,7 +74,7 @@ class JobController extends Controller
         $files = [];
 
         if ($request->input('files')) {
-            $files = collect($request->input('files'))->map(function ($filePath) use ($result) {
+            $files = collect($request->input('files'))->map(function ($filePath) {
                 return new File(
                     [
                         'url' => $filePath
@@ -54,7 +86,7 @@ class JobController extends Controller
             $result->files()->saveMany($files);
         }
 
-        return JobResource::make($result->fresh(['skills', 'files']));
+        return JobResource::make($result->fresh(self::$relations));
     }
 
     /**
@@ -62,7 +94,7 @@ class JobController extends Controller
      */
     public function show(Job $job): JobResource
     {
-        return JobResource::make($job);
+        return JobResource::make($job->load(self::$relations));
     }
 
     /**
@@ -95,7 +127,7 @@ class JobController extends Controller
             $job->files()->delete();
         }
 
-        return JobResource::make($job->fresh(['skills', 'files']));
+        return JobResource::make($job->fresh(self::$relations));
     }
 
     /**
@@ -107,7 +139,6 @@ class JobController extends Controller
         if (auth()->id() !== $job->user_uuid) {
             abort(403, 'Unauthorized');
         }
-
 
         $job->delete();
 

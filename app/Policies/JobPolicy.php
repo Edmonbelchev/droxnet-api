@@ -14,6 +14,6 @@ class JobPolicy
 
     public function update(User $user, Job $job): bool
     {
-        return $user->uuid === $job->user_uuid && $user->role->role_id === "employer";
+        return $user->uuid === $job->user_uuid && $user->role === "employer";
     }
 }

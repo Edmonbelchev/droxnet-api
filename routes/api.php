@@ -6,6 +6,8 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\SkillController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\UserJobController;
+use App\Http\Controllers\API\ProposalController;
 use App\Http\Controllers\Api\UserAwardController;
 use App\Http\Controllers\API\UserSkillController;
 use App\Http\Controllers\API\UploadFileController;
@@ -92,4 +94,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('show', 'jobs.show')
         ->name('update', 'jobs.update')
         ->name('delete', 'jobs.destroy');
+
+    // User jobs route
+    Route::get('/user-jobs', UserJobController::class)
+        ->name('user.jobs');
+
+    // Proposal routes
+    Route::resource('proposals', ProposalController::class)
+        ->name('index', 'proposals.index')
+        ->name('store', 'proposals.store')
+        ->name('show', 'proposals.show')
+        ->name('update', 'proposals.update')
+        ->name('delete', 'proposals.destroy');
 });

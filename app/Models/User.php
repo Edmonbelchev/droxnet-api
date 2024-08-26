@@ -127,4 +127,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Job::class);
     }
+
+    // Relation for user's job proposals
+    public function proposals()
+    {
+        return $this->hasMany(Proposal::class);
+    }
 }
