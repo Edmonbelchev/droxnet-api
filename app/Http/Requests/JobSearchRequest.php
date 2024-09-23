@@ -41,6 +41,7 @@ class JobSearchRequest extends FormRequest
             'budget.end'   => ['required_with:budget', 'integer', 'min:0'],
             'duration'     => ['sometimes', 'nullable', 'array'],
             'duration.*'   => ['required', 'string', 'in:' . implode(',', $jobDuration)],
+            'user_uuid'    => ['sometimes', 'nullable', 'string', 'exists:users,uuid'],
         ];
     }
 }

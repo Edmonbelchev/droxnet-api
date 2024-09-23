@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Job;
+use App\Models\User;
+use App\Models\Proposal;
 use App\Models\UserAward;
 use App\Models\UserProject;
 use Illuminate\Support\ServiceProvider;
@@ -23,9 +26,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Relation::morphMap([
+            'user'         => User::class,
             'user_project' => UserProject::class,
             'user_award'   => UserAward::class,
-            'job'          => 'App\Models\Job'
+            'job'          => Job::class,
+            'proposal'     => Proposal::class,
         ]);
     }
 }

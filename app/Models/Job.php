@@ -48,6 +48,14 @@ class Job extends Model
     ];
 
     /**
+     * Get the proposals count for the job.
+     */
+    public function getProposalsCountAttribute()
+    {
+        return $this->proposals()->count();
+    }
+
+    /**
      * Get the user that owns the job.
      */
     public function user(): BelongsTo
@@ -77,5 +85,41 @@ class Job extends Model
     public function proposals()
     {
         return $this->hasMany(Proposal::class);
+    }
+
+    /**
+     * Get the proposals for the job where status is approved.
+     */
+    public function acceptedProposals()
+    {
+        return $this->hasMany(Proposal::class)->where('status', 'accepted');
+    }
+
+    /**
+     * Get the comments for the job.
+     */
+    public function comments()
+    {
+        return $this->hasMany(JobComment::class);
+    }
+
+    /**
+     * Check if the job is saved by the user.
+     */
+    public function savedItem()
+    {
+        $user = auth()->user();
+
+        return $this->morphOne(SavedItem::class, 'saveable')->where('user_uuid', $user->uuid)->first();
+    }
+
+    /**
+     * Check if the job is reported by the user.
+     */
+    public function isReported(): bool
+    {
+        $user = auth()->user();
+
+        return $user->reports()->where('reportable_id', $this->id)->where('reportable_type', 'job')->exists();
     }
 }

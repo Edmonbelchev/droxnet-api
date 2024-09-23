@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class SimpleUserResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -30,17 +30,9 @@ class UserResource extends JsonResource
             'phone'           => $this->phone,
             'date_of_birth'   => $this->date_of_birth,
             'about'           => $this->about,
-            'role'            => $this->role,   
+            'role'            => $this->role,
             'email_verified'  => $this->email_verified_at !== null,
-            'skills'          => UserSkillsResource::collection($this->whenLoaded('skills')),
-            'educations'      => UserEducationResource::collection($this->whenLoaded('educations')),
-            'experiences'     => UserExperienceResource::collection($this->whenLoaded('experiences')),
-            'projects'        => UserProjectResource::collection($this->whenLoaded('projects')),
-            'awards'          => UserAwardResource::collection($this->whenLoaded('awards')),
-            'company_details' => new CompanyDetailResource($this->whenLoaded('companyDetail')),
-            'saved_item'      => $this->savedItem(),
-            'is_reported'     => $this->isReported(),
-            'created_at'      => $this->created_at
+            'created_at'      => $this->created_at->toIso8601String()
         ];
     }
 }

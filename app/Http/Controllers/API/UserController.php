@@ -45,7 +45,7 @@ class UserController extends Controller
     public function show(User $user): UserResource
     {
         // Load all relations
-        $user->load('skills', 'educations', 'experiences', 'projects', 'awards');
+        $user->load('skills', 'educations', 'experiences', 'projects', 'awards', 'companyDetail');
 
         return UserResource::make($user);
     }

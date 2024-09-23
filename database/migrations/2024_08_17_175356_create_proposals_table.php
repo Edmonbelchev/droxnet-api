@@ -19,6 +19,8 @@ return new class extends Migration
             $table->text('description', 512);
             $table->decimal('price', 10, 2);
             $table->enum('status', ['pending', 'accepted', 'rejected']);
+            $table->integer('duration')->default(0)->nullable(false);
+            $table->enum('duration_type', ['days', 'weeks', 'months'])->default('days')->nullable(false);
             $table->timestamps();
 
             $table->foreign('user_uuid')->references('uuid')->on('users');

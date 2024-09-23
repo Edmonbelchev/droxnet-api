@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Job;
 use App\Models\File;
+use Illuminate\Http\Request;
 use App\Http\Requests\JobRequest;
 use App\Http\Resources\JobResource;
 use App\Http\Controllers\Controller;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Http\Resources\JobCollection;
 use App\Http\Resources\StatusResource;
 use App\Http\Requests\JobSearchRequest;
+use App\Http\Requests\JobStatusRequest;
 
 class JobController extends Controller
 {
@@ -27,10 +29,25 @@ class JobController extends Controller
     {
         $perPage = request()->query('per_page', 15);
 
-        $result = Job::query()->orderByDesc('created_at');
+        $result = Job::query()->where('status', 'proposal')->orderByDesc('created_at');
+
+        if ($request->has('user_uuid')) {
+            $result->whereHas('user', function ($query) use ($request) {
+                $query->where('uuid', $request->user_uuid)
+                    ->where('role', 'employer');
+            });
+        }
 
         if ($request->has('countries')) {
             $result->whereIn('country', $request->countries);
+        }
+
+        if ($request->has('languages')) {
+            $result->where(function ($query) use ($request) {
+                foreach ($request->languages as $language) {
+                    $query->orWhereJsonContains('languages', $language);
+                }
+            });
         }
 
         if ($request->has('skills')) {
@@ -50,7 +67,7 @@ class JobController extends Controller
             $result->where('budget_type', $request->budget_type);
         }
 
-        if($request->has('duration')) {
+        if ($request->has('duration')) {
             $result->whereIn('duration', $request->duration);
         }
 
@@ -62,7 +79,7 @@ class JobController extends Controller
      */
     public function store(JobRequest $request): JobResource
     {
-        Gate::authorize('create', Job::class);
+        Gate::authorize('store', Job::class);
 
         $user = auth()->user();
 
@@ -94,7 +111,45 @@ class JobController extends Controller
      */
     public function show(Job $job): JobResource
     {
+        self::$relations[] = 'proposals';
+        self::$relations[] = 'proposals.user';
+        self::$relations[] = 'acceptedProposals';
+        self::$relations[] = 'acceptedProposals.user';
+
         return JobResource::make($job->load(self::$relations));
+    }
+
+    public function JobCounter(Request $request)
+    {
+        $user = auth()->user();
+
+        $result = Job::where('status', $request->status);
+
+        if($user->role === 'freelancer') {
+            $result->whereHas('proposals', function($query) use ($user) {
+                $query->where('user_uuid', $user->uuid)
+                    ->where('status', 'accepted');
+            });
+        } else {
+            $result->where('user_uuid', $user->uuid);
+        }
+
+        $data = [
+            'data' => [
+                'total' => $result->count()
+            ]
+        ];
+
+        return response()->json($data);
+    }
+
+    public function updateStatus(JobStatusRequest $request, Job $job)
+    {
+        Gate::authorize('updateStatus', $job);
+
+        $job->update($request->validated());
+
+        return new StatusResource(true);
     }
 
     /**

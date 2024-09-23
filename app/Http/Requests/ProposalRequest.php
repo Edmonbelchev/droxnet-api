@@ -14,10 +14,13 @@ class ProposalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'job_id'      => 'required|exists:jobs,id',
-            'subject'     => 'required|string|max:128',
-            'description' => 'required|string|max:512',
-            'price'       => 'required|numeric'
+            'job_id'           => 'required|exists:jobs,id',
+            'subject'          => 'required|string|max:128',
+            'description'      => 'required|string|max:512',
+            'price'            => 'required|numeric',
+            'duration'         => 'required|numeric',
+            'duration_type'    => 'required|in:days,weeks,months',
+            'projects.*.files' => 'array|present'
         ];
     }
 }

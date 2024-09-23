@@ -19,6 +19,11 @@ class ProposalPolicy
 
     public function update(User $user, Proposal $proposal): bool
     {
-        return$user->role === "freelancer" && $user->uuid === $proposal->user_uuid;
+        return $user->role === "freelancer" && $user->uuid === $proposal->user_uuid;
+    }
+
+    public function updateStatus(User $user, Proposal $proposal): bool
+    {
+        return $user->uuid === $proposal->job->user_uuid;
     }
 }

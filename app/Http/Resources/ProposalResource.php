@@ -15,16 +15,19 @@ class ProposalResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'user_id'     => $this->user_id,
-            'subject'     => $this->subject,
-            'description' => $this->description,
-            'status'      => $this->status,
-            'price'       => $this->price,
-            'job'         => new JobResource($this->whenLoaded('job')),
-            'user'        => new UserResource($this->whenLoaded('user')),
-            'created_at'  => $this->created_at,
-            'updated_at'  => $this->updated_at,
+            'id'            => $this->id,
+            'user_uuid'     => $this->user_uuid,
+            'subject'       => $this->subject,
+            'description'   => $this->description,
+            'status'        => $this->status,
+            'price'         => $this->price,
+            'duration'      => $this->duration,
+            'duration_type' => $this->duration_type,
+            'job'           => new JobResource($this->whenLoaded('job')),
+            'user'          => new UserResource($this->whenLoaded('user')),
+            'files'         => FileCollection::make($this->whenLoaded('files')),
+            'created_at'    => $this->created_at,
+            'updated_at'    => $this->updated_at,
         ];
     }
 }

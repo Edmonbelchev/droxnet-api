@@ -128,9 +128,51 @@ class User extends Authenticatable
         return $this->hasMany(Job::class);
     }
 
+    // Relation for user's reports
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
     // Relation for user's job proposals
     public function proposals()
     {
         return $this->hasMany(Proposal::class);
+    }
+
+    // Relation for user of type employer's job proposals
+    public function employerProposals()
+    {
+        return $this->hasManyThrough(Proposal::class, Job::class);
+    }
+
+    // Relation for user's saved items
+    public function savedItems()
+    {
+        return $this->hasMany(SavedItem::class, 'user_uuid', 'uuid');
+    }
+
+    /**
+     * Check if the user is saved by the authenticated user.
+     */
+    public function savedItem()
+    {
+        $user = auth()->user();
+
+        // Check if the user record is saved by the authenticated user
+        $savedItem = $user->savedItems()->where('saveable_id', $this->id)->where('saveable_type', 'user')->first();
+        
+        return $savedItem;
+    }
+
+    /**
+     * Check if the user is reported by the authenticated user.
+     */
+    public function isReported(): bool
+    {
+        $user = auth()->user();
+
+        // Check if the user record is reported by the authenticated user
+        return $user->reports()->where('reportable_id', $this->id)->where('reportable_type', 'user')->exists();
     }
 }

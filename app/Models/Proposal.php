@@ -15,11 +15,9 @@ class Proposal extends Model
         'description',
         'subject',
         'price',
-        'status'
-    ];
-
-    protected $casts = [
-        'files' => 'array',
+        'status',
+        'duration',
+        'duration_type'
     ];
 
     public function job()
@@ -30,5 +28,13 @@ class Proposal extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+     /**
+     * Get the files for the proposal.
+     */
+    public function files()
+    {
+        return $this->morphMany(File::class, 'fileable');
     }
 }

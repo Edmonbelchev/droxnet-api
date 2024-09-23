@@ -25,7 +25,7 @@ class JobRequest extends FormRequest
 
         return [
             'title'            => 'required|string|max:255',
-            'description'      => 'required|string|max:1024',
+            'description'      => 'required|string|max:4096',
             'budget'           => 'required|numeric',
             'duration'         => 'required|string|max:128|in:' . implode(',', $jobDuration),
             'location'         => 'required|string|max:128',
