@@ -53,6 +53,7 @@ return [
     */
 
     'url' => env('APP_URL', 'https://api.droxnet.com'),
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
     /*
     |--------------------------------------------------------------------------

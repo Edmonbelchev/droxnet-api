@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Notifications\PasswordResetNotification;
 
 class User extends Authenticatable
 {
@@ -159,6 +160,10 @@ class User extends Authenticatable
     {
         $user = auth()->user();
 
+        if (!$user) {
+            return null;
+        }
+
         // Check if the user record is saved by the authenticated user
         $savedItem = $user->savedItems()->where('saveable_id', $this->id)->where('saveable_type', 'user')->first();
         
@@ -168,11 +173,26 @@ class User extends Authenticatable
     /**
      * Check if the user is reported by the authenticated user.
      */
-    public function isReported(): bool
+    public function isReported(): ?bool
     {
         $user = auth()->user();
 
+        if (!$user) {
+            return null;
+        }
+
         // Check if the user record is reported by the authenticated user
         return $user->reports()->where('reportable_id', $this->id)->where('reportable_type', 'user')->exists();
+    }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new PasswordResetNotification($token));
     }
 }

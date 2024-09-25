@@ -20,12 +20,34 @@ use App\Http\Controllers\API\EmailValidateController;
 use App\Http\Controllers\Api\UserEducationController;
 use App\Http\Controllers\Api\UserExperienceController;
 
+Route::resource('users', UserController::class)
+    ->only(['index', 'show'])
+    ->names([
+        'index' => 'users.index',
+        'show' => 'users.show'
+    ]);
+
+Route::resource('jobs', JobController::class)
+    ->only(['index', 'show'])
+    ->names([
+        'index' => 'jobs.index',
+        'show' => 'jobs.show'
+    ]);
+
+// Skill routes
+Route::resource('skills', SkillController::class)
+    ->name('index', 'skills.index');
+
 Route::post('/login', [AuthController::class, 'login'])
     ->name('login');
 
 Route::post('/register', [AuthController::class, 'register'])
     ->name('register');
 
+Route::post('/forgot-password', [ProfileController::class, 'forgotPassword'])
+    ->name('forgot-password');
+
+Route::post('reset-password', [ProfileController::class, 'resetPassword'])->name('password.reset');
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])
@@ -53,15 +75,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/file-upload', [UploadFileController::class, 'fileUpload'])
         ->name('file.file-upload');
-
-    // Users routes
-    Route::resource('users', UserController::class)
-        ->name('index', 'users.index')
-        ->name('show', 'users.show');
-
-    // Skill routes
-    Route::resource('skills', SkillController::class)
-        ->name('index', 'skills.index');
 
     // User skills routes
     Route::get('/user-skills', UserSkillController::class)
@@ -96,11 +109,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/jobs/{job}/update-status', [JobController::class, 'updateStatus']);
 
     Route::resource('jobs', JobController::class)
-        ->name('index', 'jobs.index')
-        ->name('store', 'jobs.store')
-        ->name('show', 'jobs.show')
-        ->name('update', 'jobs.update')
-        ->name('delete', 'jobs.destroy');
+        ->only(['store', 'update', 'destroy'])
+        ->names([
+            'store' => 'jobs.store',
+            'update' => 'jobs.update',
+            'delete' => 'jobs.destroy'
+        ]);
 
     // Job comments routes (list and store)
     Route::get('/jobs/{job}/comments', [JobCommentController::class, 'index'])
@@ -144,5 +158,3 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/companies/followers', [CompanyController::class, 'followers'])
         ->name('companies.followers');
 });
-
-

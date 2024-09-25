@@ -110,15 +110,23 @@ class Job extends Model
     {
         $user = auth()->user();
 
+        if (!$user) {
+            return null;
+        }
+
         return $this->morphOne(SavedItem::class, 'saveable')->where('user_uuid', $user->uuid)->first();
     }
 
     /**
      * Check if the job is reported by the user.
      */
-    public function isReported(): bool
+    public function isReported(): ?bool
     {
         $user = auth()->user();
+
+        if (!$user) {
+            return null;
+        }
 
         return $user->reports()->where('reportable_id', $this->id)->where('reportable_type', 'job')->exists();
     }

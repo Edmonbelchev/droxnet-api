@@ -8,9 +8,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\StatusResource;
 use App\Http\Resources\ProfileResource;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+use App\Http\Requests\DeleteProfileRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Requests\ChangePasswordRequest;
-use App\Http\Requests\DeleteProfileRequest;
+use App\Http\Requests\ForgotPasswordRequest;
 
 class ProfileController extends Controller
 {
@@ -91,5 +95,39 @@ class ProfileController extends Controller
         $user->save();
 
         return new StatusResource(true);
+    }
+
+    /**
+     * Forgot password
+     * Send email to user with reset password link
+     */
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status === Password::RESET_LINK_SENT
+            ? new StatusResource(true)
+            : new StatusResource(false);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ]);
+
+                $user->save();
+            }
+        );
+
+
+        return $status === Password::PASSWORD_RESET
+            ? new StatusResource(true, __($status))
+            : new StatusResource(false, __($status));
     }
 }
