@@ -153,6 +153,22 @@ class User extends Authenticatable
         return $this->hasMany(SavedItem::class, 'user_uuid', 'uuid');
     }
 
+    // Relation for user's conversations
+    public function conversations()
+    {
+        if ($this->role === 'freelancer') {
+            return $this->hasMany(Conversation::class, 'freelancer_uuid', 'uuid');
+        }
+
+        return $this->hasMany(Conversation::class, 'employer_uuid', 'uuid');
+    }
+
+    // Relation for user's messages
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'sender_uuid', 'uuid');
+    }
+
     /**
      * Check if the user is saved by the authenticated user.
      */

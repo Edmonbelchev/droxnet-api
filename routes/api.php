@@ -7,6 +7,7 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\SkillController;
 use App\Http\Controllers\API\ReportController;
 use App\Http\Controllers\API\CompanyController;
+use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\UserJobController;
 use App\Http\Controllers\API\ProposalController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\API\UserSkillController;
 use App\Http\Controllers\API\JobCommentController;
 use App\Http\Controllers\API\UploadFileController;
 use App\Http\Controllers\Api\UserProjectController;
+use App\Http\Controllers\API\ConversationController;
 use App\Http\Controllers\API\EmailValidateController;
 use App\Http\Controllers\Api\UserEducationController;
 use App\Http\Controllers\Api\UserExperienceController;
@@ -105,7 +107,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('delete', 'user-awards.destroy');
 
     // Job routes
-    Route::get('/jobs/counter', [JobController::class, 'JobCounter']);
+    Route::get('/jobs-counter', [JobController::class, 'JobCounter'])->name('jobs.counter');
     Route::patch('/jobs/{job}/update-status', [JobController::class, 'updateStatus']);
 
     Route::resource('jobs', JobController::class)
@@ -157,4 +159,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Company followers routes
     Route::get('/companies/followers', [CompanyController::class, 'followers'])
         ->name('companies.followers');
+
+    // Conversations routes
+    Route::resource('conversations', ConversationController::class)
+        ->name('index', 'conversations.index')
+        ->name('show', 'conversations.show')
+        ->name('delete', 'conversations.destroy');
+
+    // Messages routes
+    Route::resource('messages', MessageController::class)
+        ->name('index', 'messages.index')
+        ->name('show', 'messages.show')
+        ->name('store', 'messages.store')
+        ->name('delete', 'messages.destroy');
 });

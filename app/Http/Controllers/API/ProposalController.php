@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Models\File;
 use App\Models\Proposal;
+use App\Models\Conversation;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\ProposalRequest;
@@ -106,6 +107,18 @@ class ProposalController extends Controller
         $proposal->job->update([
             'status' => 'ongoing'
         ]);
+
+        if($proposal->status === 'accepted') {
+            Conversation::create(
+                [
+                    'employer_uuid'    => $proposal->job->user->uuid,
+                    'freelancer_uuid'=> $proposal->user->uuid
+                ]
+            );
+
+            // TODO: Send notification to the user
+            // $proposal->job->user->notify(new ProposalAcceptedNotification($proposal));
+        }
 
         return new StatusResource(true);
     }

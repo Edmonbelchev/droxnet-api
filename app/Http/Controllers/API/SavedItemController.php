@@ -39,7 +39,7 @@ class SavedItemController extends Controller
 
             return new UserCollection($users->paginate($perPage));
         } else if ($request->type === 'job') {
-            $jobs = Job::whereIn('id', $savedItems)->paginate($perPage);
+            $jobs = Job::whereIn('id', $savedItems)->with('user.companyDetail')->paginate($perPage);
 
             return new JobCollection($jobs);
         }

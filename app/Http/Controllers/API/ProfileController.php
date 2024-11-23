@@ -90,7 +90,7 @@ class ProfileController extends Controller
     {
         $auth = auth()->user();
 
-        $user           =  User::find($auth->id);
+        $user           =  User::find($auth->uuid);
         $user->password =  Hash::make($request->new_password);
         $user->save();
 
