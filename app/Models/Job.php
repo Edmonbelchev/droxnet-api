@@ -104,6 +104,30 @@ class Job extends Model
     }
 
     /**
+     * Get the milestones for the job.
+     */
+    public function milestones()
+    {
+        return $this->hasMany(Milestone::class);
+    }
+
+    /**
+     * Get the transactions for the job.
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Get the freelancer assigned to the job.
+     */
+    public function freelancer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'freelancer_id');
+    }
+
+    /**
      * Check if the job is saved by the user.
      */
     public function savedItem()

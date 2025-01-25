@@ -2,12 +2,17 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\JobController;
+use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\SkillController;
+use App\Http\Controllers\Api\PayoutController;
 use App\Http\Controllers\API\ReportController;
+use App\Http\Controllers\Api\StripeController;
+use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\API\CompanyController;
 use App\Http\Controllers\API\MessageController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\UserJobController;
 use App\Http\Controllers\API\ProposalController;
@@ -172,4 +177,53 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('show', 'messages.show')
         ->name('store', 'messages.store')
         ->name('delete', 'messages.destroy');
+
+    // Stripe routes
+    Route::get('/stripe/account-link', [StripeController::class, 'getAccountLink'])
+        ->name('stripe.account-link');
+
+    // Stripe webhook
+    Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])
+        ->name('stripe.webhook');
+
+    // Payment routes
+    Route::post('/deposit', [PaymentController::class, 'deposit'])
+        ->name('payment.deposit');
+        
+    Route::post('/jobs/{job}/milestones', [PaymentController::class, 'createMilestone'])
+        ->name('payment.milestone.create');
+    
+    Route::post('/milestones/{milestone}/fund', [PaymentController::class, 'fundMilestone'])
+        ->name('payment.milestone.fund');
+        
+    Route::post('/milestones/{milestone}/release', [PaymentController::class, 'releaseMilestonePayment'])
+        ->name('payment.milestone.release');
+    
+    Route::post('/payment-methods', [PaymentController::class, 'addPaymentMethod'])
+        ->name('payment.methods.add');
+
+    Route::get('/payment-methods', [PaymentController::class, 'getPaymentMethods'])
+        ->name('payment.methods.get');
+
+    // Wallet routes
+    Route::prefix('wallet')->group(function () {
+        Route::get('/', [WalletController::class, 'show'])
+            ->name('wallet.show');
+        Route::get('/transactions', [WalletController::class, 'getTransactions'])
+            ->name('wallet.transactions');
+        Route::post('/withdraw', [WalletController::class, 'withdraw'])
+            ->name('wallet.withdraw');
+    });
+
+    // Payout routes
+    Route::prefix('payouts')->group(function () {
+        Route::post('/configure', [PayoutController::class, 'configureFreelancerPayouts'])
+            ->name('payouts.configure');
+            
+        Route::get('/earnings', [PayoutController::class, 'getEarningsReport'])
+            ->name('payouts.earnings');
+            
+        Route::get('/report', [PayoutController::class, 'getPayoutReport'])
+            ->name('payouts.report');
+    });
 });
