@@ -34,15 +34,45 @@ class WebhookController extends Controller
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
 
+        if (empty($sigHeader)) {
+            Log::error('Webhook signature header missing');
+            return response('Webhook signature header missing', 400);
+        }
+
+        if (empty($payload)) {
+            Log::error('Webhook payload empty');
+            return response('Webhook payload empty', 400);
+        }
+
+        $webhookSecret = config('services.stripe.webhook_secret');
+        if (empty($webhookSecret)) {
+            Log::error('Stripe webhook secret not configured');
+            return response('Webhook secret not configured', 500);
+        }
+
         try {
+            Log::info('Attempting to verify webhook', [
+                'signature' => $sigHeader,
+                'payload_length' => strlen($payload)
+            ]);
+
             $event = Webhook::constructEvent(
                 $payload,
                 $sigHeader,
-                config('services.stripe.webhook_secret')
+                $webhookSecret
             );
         } catch (SignatureVerificationException $e) {
-            Log::error('Webhook signature verification failed.', ['error' => $e->getMessage()]);
-            return response('', 400);
+            Log::error('Webhook signature verification failed.', [
+                'error' => $e->getMessage(),
+                'signature' => $sigHeader
+            ]);
+            return response('Signature verification failed', 400);
+        } catch (\Exception $e) {
+            Log::error('Webhook processing failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response('Webhook processing failed', 500);
         }
 
         $this->handleStripeEvent($event);
@@ -69,6 +99,8 @@ class WebhookController extends Controller
                 $this->handleTransferFailed($event->data->object);
                 break;
 
+            case 'payout.created':
+            case 'payout.updated':
             case 'payout.paid':
             case 'payout.failed':
             case 'payout.canceled':
@@ -86,43 +118,69 @@ class WebhookController extends Controller
         
         $transaction = Transaction::where('stripe_payout_id', $payout->id)->first();
         
-        if (!$transaction) {
+        if (!$transaction && !in_array($event->type, ['payout.created', 'payout.updated'])) {
             Log::error('Transaction not found for payout.', ['payout_id' => $payout->id]);
             return;
         }
 
         switch ($event->type) {
-            case 'payout.paid':
-                $transaction->status = Transaction::STATUS_COMPLETED;
-                Log::info('Payout successful', ['payout_id' => $payout->id]);
-                break;
-
-            case 'payout.failed':
-                $this->handleFailedPayout($transaction, $payout);
-                Log::error('Payout failed', [
+            case 'payout.created':
+                Log::info('New payout created', [
                     'payout_id' => $payout->id,
-                    'failure_code' => $payout->failure_code,
-                    'failure_message' => $payout->failure_message
+                    'amount' => $payout->amount,
+                    'currency' => $payout->currency,
+                    'arrival_date' => $payout->arrival_date
                 ]);
                 break;
 
+            case 'payout.updated':
+                Log::info('Payout updated', [
+                    'payout_id' => $payout->id,
+                    'status' => $payout->status,
+                    'metadata' => $payout->metadata
+                ]);
+                break;
+
+            case 'payout.paid':
+                if ($transaction) {
+                    $transaction->status = Transaction::STATUS_COMPLETED;
+                    Log::info('Payout successful', ['payout_id' => $payout->id]);
+                }
+                break;
+
+            case 'payout.failed':
+                if ($transaction) {
+                    $this->handleFailedPayout($transaction, $payout);
+                    Log::error('Payout failed', [
+                        'payout_id' => $payout->id,
+                        'failure_code' => $payout->failure_code,
+                        'failure_message' => $payout->failure_message
+                    ]);
+                }
+                break;
+
             case 'payout.canceled':
-                $this->handleCanceledPayout($transaction, $payout);
-                Log::info('Payout canceled', ['payout_id' => $payout->id]);
+                if ($transaction) {
+                    $this->handleCanceledPayout($transaction, $payout);
+                    Log::info('Payout canceled', ['payout_id' => $payout->id]);
+                }
                 break;
         }
 
-        $transaction->metadata = array_merge(
-            $transaction->metadata ?? [],
-            [
-                'webhook_event' => $event->type,
-                'stripe_status' => $payout->status,
-                'failure_code' => $payout->failure_code ?? null,
-                'failure_message' => $payout->failure_message ?? null
-            ]
-        );
-        
-        $transaction->save();
+        if ($transaction) {
+            $transaction->metadata = array_merge(
+                $transaction->metadata ?? [],
+                [
+                    'webhook_event' => $event->type,
+                    'stripe_status' => $payout->status,
+                    'failure_code' => $payout->failure_code ?? null,
+                    'failure_message' => $payout->failure_message ?? null,
+                    'arrival_date' => $payout->arrival_date ?? null
+                ]
+            );
+            
+            $transaction->save();
+        }
     }
 
     protected function handleFailedPayout(Transaction $transaction, $payout): void
@@ -210,43 +268,5 @@ class WebhookController extends Controller
         }
     }
 
-    /**
-     * Handle Stripe webhook for payout status updates
-     */
-    public function handlePayoutWebhook(array $event): void
-    {
-        $payoutId = $event['data']['object']['id'];
 
-        $transaction = Transaction::where('stripe_payout_id', $payoutId)->first();
-
-        if (!$transaction) {
-            throw new Exception('Transaction not found for payout: ' . $payoutId);
-        }
-
-        switch ($event['type']) {
-            case 'payout.paid':
-                $transaction->status = Transaction::STATUS_COMPLETED;
-                break;
-            case 'payout.failed':
-                $transaction->status = Transaction::STATUS_FAILED;
-                // Refund the amount back to wallet
-                $wallet = $transaction->wallet;
-                $wallet->balance += $transaction->amount;
-                $wallet->save();
-                break;
-            case 'payout.canceled':
-                $transaction->status = Transaction::STATUS_CANCELED;
-                // Refund the amount back to wallet
-                $wallet = $transaction->wallet;
-                $wallet->balance += $transaction->amount;
-                $wallet->save();
-                break;
-        }
-
-        $transaction->metadata = array_merge(
-            $transaction->metadata ?? [],
-            ['webhook_event' => $event['type']]
-        );
-        $transaction->save();
-    }
 }

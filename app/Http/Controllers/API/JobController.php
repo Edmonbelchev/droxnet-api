@@ -4,7 +4,10 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Job;
 use App\Models\File;
+use App\Models\User;
+use App\Events\NewMessage;
 use App\Models\Transaction;
+use App\Models\Conversation;
 use Illuminate\Http\Request;
 use App\Services\PaymentService;
 use App\Http\Requests\JobRequest;
@@ -159,6 +162,26 @@ class JobController extends Controller
 
         $data = $request->validated();
 
+        $freelancer = User::find($job->acceptedProposals[0]->user->uuid)->first();
+        $conversation = Conversation::where('employer_uuid', $job->user->uuid)
+                                    ->where('freelancer_uuid', $freelancer->uuid)
+                                    ->first();
+        $user = auth()->user();
+
+        $message = $user->messages()->create([
+            'conversation_id' => $conversation->id,
+            'message' => json_encode([
+                'job' => [
+                    'id' => $job->id,
+                    'status' => $request->status,
+                    'title' => $job->title
+                ],
+                'type' => 'job'
+            ])
+        ]);
+        
+        event(new NewMessage($message));
+
         // Check if status is being updated to completed
         if ($request->status === 'completed') {
             // Get the accepted proposal
@@ -180,7 +203,7 @@ class JobController extends Controller
                 $freelancerWallet = $this->paymentService->createOrGetWallet($freelancer);
 
                 // Check if employer has sufficient balance
-                if ($employerWallet->balance < $acceptedProposal->price) {
+                if ($employerWallet->balance <= $acceptedProposal->price) {
                     return response()->json([
                         'message' => 'Insufficient funds in employer wallet'
                     ], 400);

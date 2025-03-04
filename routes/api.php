@@ -182,10 +182,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/stripe/account-link', [StripeController::class, 'getAccountLink'])
         ->name('stripe.account-link');
 
-    // Stripe webhook
-    Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])
-        ->name('stripe.webhook');
-
     // Payment routes
     Route::post('/deposit', [PaymentController::class, 'deposit'])
         ->name('payment.deposit');
@@ -227,3 +223,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ->name('payouts.report');
     });
 });
+
+// Stripe webhook - must be accessible without auth
+Route::post('/stripe/webhook', [WebhookController::class, 'handleWebhook'])
+    ->name('stripe.webhook')
+    ->middleware('api');
