@@ -100,6 +100,9 @@ class WebhookController extends Controller
                 break;
 
             case 'payout.created':
+                $this->handlePayoutCreatedEvent($event);
+                break;
+
             case 'payout.updated':
             case 'payout.paid':
             case 'payout.failed':
@@ -110,6 +113,42 @@ class WebhookController extends Controller
             default:
                 Log::info('Unhandled Stripe event.', ['type' => $event->type]);
         }
+    }
+
+    // if payout is initiated via the Stripe Dashboard
+    protected function handlePayoutCreatedEvent(Event $event): void
+    {
+        $payout = $event->data->object;
+        $walletId = $paymentIntent->metadata['wallet_id'] ?? null;
+
+        if (!$walletId) {
+            Log::error('No wallet ID in payment intent metadata.');
+            return;
+        }
+        $stripeConnectId = $payout->destination;
+        $amount = $payout->amount / 100;
+        $wallet = Wallet::where('stripe_connect_id', $stripeConnectId)->first();
+
+        if($amount > $wallet->balance) {
+            Log::error("Unauthorized payout of {$amount} from wallet {$wallet->id}");
+            return;
+        }
+
+        $wallet->balance -= $amount;
+        $wallet->save();
+
+        Transaction::create([
+            'wallet_id' => $wallet->id,
+            'amount' => $amount,
+            'stripe_payout_id' => $payout->id,
+            'type' => 'withdrawal',
+            'status' => Transaction::STATUS_COMPLETED,
+        ]);
+
+        Log::info('Payout through webhook', [
+            'wallet_id' => $walletId,
+            'amount_to_be_substracted' => $amount
+        ]);
     }
 
     protected function handlePayoutEvent(Event $event): void
@@ -124,15 +163,6 @@ class WebhookController extends Controller
         }
 
         switch ($event->type) {
-            case 'payout.created':
-                Log::info('New payout created', [
-                    'payout_id' => $payout->id,
-                    'amount' => $payout->amount,
-                    'currency' => $payout->currency,
-                    'arrival_date' => $payout->arrival_date
-                ]);
-                break;
-
             case 'payout.updated':
                 Log::info('Payout updated', [
                     'payout_id' => $payout->id,
@@ -224,6 +254,18 @@ class WebhookController extends Controller
         }
 
         if ($transaction->status !== Transaction::STATUS_COMPLETED) {
+            $wallet = Wallet::getById($walletId);
+
+            $amount = $paymentIntent->amount / 100;
+
+            $wallet->balance += $amount;
+            $wallet->save();
+
+            Log::info('Adding balance to user through webhook', [
+                'wallet_id' => $walletId,
+                'amount_to_be_added' => $amount
+            ]);
+
             $transaction->status = Transaction::STATUS_COMPLETED;
             $transaction->save();
 

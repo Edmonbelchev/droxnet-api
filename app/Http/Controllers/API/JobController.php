@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\API;
 
+use Exception;
 use App\Models\Job;
 use App\Models\File;
 use App\Models\User;
 use App\Events\NewMessage;
 use App\Models\Transaction;
 use App\Models\Conversation;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use App\Services\PaymentService;
 use App\Http\Requests\JobRequest;
@@ -96,7 +98,19 @@ class JobController extends Controller
 
         $user = auth()->user();
 
+        // Retrieve user's wallet
+        $wallet = Wallet::where('user_uuid', $user->uuid)->firstOrFail();
+        $budget = $request->budget;
+
+        if ($wallet->balance < $budget) {
+            throw new Exception('Insufficient funds in wallet!');
+        }
+
         $result = $user->jobs()->create($request->validated());
+
+        $wallet->balance -= $budget;
+        $wallet->escrow_balance += $budget;
+        $wallet->save();
 
         // Sync the skills
         $result->skills()->sync($request->skills);
@@ -162,7 +176,8 @@ class JobController extends Controller
 
         $data = $request->validated();
 
-        $freelancer = User::find($job->acceptedProposals[0]->user->uuid)->first();
+        $freelancer = User::where('uuid', $job->acceptedProposals[0]->user_uuid)->first();
+
         $conversation = Conversation::where('employer_uuid', $job->user->uuid)
                                     ->where('freelancer_uuid', $freelancer->uuid)
                                     ->first();
@@ -203,7 +218,7 @@ class JobController extends Controller
                 $freelancerWallet = $this->paymentService->createOrGetWallet($freelancer);
 
                 // Check if employer has sufficient balance
-                if ($employerWallet->balance <= $acceptedProposal->price) {
+                if ($employerWallet->escrow_balance <= $acceptedProposal->price) {
                     return response()->json([
                         'message' => 'Insufficient funds in employer wallet'
                     ], 400);
@@ -215,14 +230,21 @@ class JobController extends Controller
                     $platformFee = $acceptedProposal->price * 0.10;
                     $freelancerAmount = $acceptedProposal->price - $platformFee;
 
-                    // Create transfer to freelancer
-                    $transfer = $this->paymentService->getStripeClient()->transfers->create([
-                        'amount' => (int)($freelancerAmount * 100),
-                        'currency' => $employerWallet->currency,
+                    $debitCharge = $this->paymentService->getStripeClient()->charges->create([
+                        'amount' => (int)($acceptedProposal->price * 100), // $50 -> 5000 cents
+                        'currency' => 'BGN', //$employerWallet->currency,
+                        'description' => "Debit for job #{$job->id}",
+                        'source' => $employerWallet->stripe_connect_id, // Employer's Express account as the source
+                    ]);
+
+                    $freelancerTransfer = $this->paymentService->getStripeClient()->transfers->create([
+                        'amount' => (int)($freelancerAmount * 100), // $45 -> 4500 cents
+                        'currency' => 'BGN', //$employerWallet->currency,
                         'destination' => $freelancerWallet->stripe_connect_id,
                         'metadata' => [
                             'job_id' => $job->id,
-                            'proposal_id' => $acceptedProposal->id
+                            'proposal_id' => $acceptedProposal->id,
+                            'transfer_type' => 'freelancer_payment'
                         ]
                     ]);
 
@@ -234,7 +256,7 @@ class JobController extends Controller
                         'amount' => $acceptedProposal->price,
                         'currency' => $employerWallet->currency,
                         'status' => Transaction::STATUS_COMPLETED,
-                        'stripe_transfer_id' => $transfer->id,
+                        'stripe_transfer_id' => $freelancerTransfer->id,
                         'metadata' => [
                             'proposal_id' => $acceptedProposal->id,
                             'platform_fee' => $platformFee,
@@ -243,7 +265,7 @@ class JobController extends Controller
                     ]);
 
                     // Update wallets
-                    $employerWallet->balance -= $acceptedProposal->price;
+                    $employerWallet->escrow_balance -= $acceptedProposal->price;
                     $employerWallet->save();
 
                     $freelancerWallet->balance += $freelancerAmount;

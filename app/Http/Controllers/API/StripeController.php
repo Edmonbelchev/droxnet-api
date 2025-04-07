@@ -30,8 +30,8 @@ class StripeController extends Controller
 
         $result = $this->stripe->accountLinks->create([
             'account' => $wallet->stripe_connect_id,
-            'refresh_url' => 'https://apt-sloth-factually.ngrok-free.app/stripe/refresh',
-            'return_url' => 'http://localhost:3000/profile/payments',
+            'refresh_url' => env('STRIPE_LINK_TO_THIS_APP') . '/stripe/refresh',
+            'return_url' => env('STRIPE_LINK_TO_THIS_APP') . '/profile/payments',
             'type' => 'account_onboarding',
         ]);
 

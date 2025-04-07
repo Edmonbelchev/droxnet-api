@@ -40,4 +40,9 @@ class Wallet extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    public static function getById($walletId)
+    {
+        return self::find($walletId);
+    }
 }

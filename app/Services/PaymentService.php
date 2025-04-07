@@ -60,19 +60,26 @@ class PaymentService
             ],
             'business_type' => 'individual',
             'business_profile' => [
-                'url' => 'https://apt-sloth-factually.ngrok-free.app',
+                'url' => env('STRIPE_LINK_TO_THIS_APP'),
                 'mcc' => '7399' // Business Services Not Elsewhere Classified
             ],
             'metadata' => [
                 'user_uuid' => $user->uuid
-            ]
+            ],
+            'settings' => [
+                'payouts' => [
+                    'schedule' => [
+                        'interval' => 'manual', // Set payouts to manual
+                    ],
+                ],
+            ],
         ]);
 
         // Create an account link for onboarding
-        $this->stripe->accountLinks->create([
+        $res = $this->stripe->accountLinks->create([
             'account' => $account->id,
-            'refresh_url' => 'https://apt-sloth-factually.ngrok-free.app/stripe/refresh',
-            'return_url' => 'https://apt-sloth-factually.ngrok-free.app/stripe/return',
+            'refresh_url' => env('STRIPE_LINK_TO_THIS_APP') . '/stripe/refresh',
+            'return_url' => env('STRIPE_LINK_TO_THIS_APP') . '/stripe/return',
             'type' => 'account_onboarding',
         ]);
 
@@ -123,7 +130,7 @@ class PaymentService
                 ]);
 
                 if ($paymentIntent->status === 'succeeded') {
-                    $wallet->pending_balance += $amount;
+                    $wallet->balance += $amount;
                     $wallet->save();
                 }
 
