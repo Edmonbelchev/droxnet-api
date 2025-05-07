@@ -17,4 +17,18 @@ class JobStatusRequest extends FormRequest
             'status' => 'required|in:proposal,ongoing,completed,cancelled',
         ];
     }
+
+     /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $job = $this->route('job'); // Assuming the job is passed in the route
+
+            if ($job && $job->status === $this->input('status')) {
+                $validator->errors()->add('status', 'The job is already in this status.');
+            }
+        });
+    }
 }

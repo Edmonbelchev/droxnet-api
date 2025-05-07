@@ -40,4 +40,20 @@ class JobRequest extends FormRequest
             'show_attachments' => 'boolean|present',
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        // validate that the customer is of type club
+        $validator->after(function ($validator) {
+            $user = auth()->user();
+
+            if(!$user->wallet) {
+                $validator->errors()->add('wallet', 'Please deposit funds to your wallet before creating a job.');
+            }
+
+            if($user->wallet && $user->wallet->balance < $this->budget) {
+                $validator->errors()->add('balance', 'Insufficient funds in wallet!');
+            }
+        });
+    }
 }

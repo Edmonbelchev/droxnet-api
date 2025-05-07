@@ -2,10 +2,18 @@
 
 namespace App\Http\Controllers\API;
 
+use Exception;
 use App\Models\Job;
 use App\Models\File;
+use App\Models\User;
+use App\Events\NewMessage;
+use App\Models\Transaction;
+use App\Models\Conversation;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
+use App\Services\PaymentService;
 use App\Http\Requests\JobRequest;
+use Illuminate\Support\Facades\DB;
 use App\Http\Resources\JobResource;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
@@ -22,6 +30,13 @@ class JobController extends Controller
         'skills',
         'files'
     ];
+
+    public function __construct(
+        private readonly PaymentService $paymentService
+    ) {
+        // Individual authorization will be handled in each method
+    }
+    
     /**
      * Display a listing of the resource.
      */
@@ -83,7 +98,19 @@ class JobController extends Controller
 
         $user = auth()->user();
 
+        // Retrieve user's wallet
+        $wallet = Wallet::where('user_uuid', $user->uuid)->firstOrFail();
+        $budget = $request->budget;
+
+        if ($wallet->balance < $budget) {
+            throw new Exception('Insufficient funds in wallet!');
+        }
+
         $result = $user->jobs()->create($request->validated());
+
+        $wallet->balance -= $budget;
+        $wallet->escrow_balance += $budget;
+        $wallet->save();
 
         // Sync the skills
         $result->skills()->sync($request->skills);
@@ -147,7 +174,129 @@ class JobController extends Controller
     {
         Gate::authorize('updateStatus', $job);
 
-        $job->update($request->validated());
+        $data = $request->validated();
+
+        $freelancer = User::where('uuid', $job->acceptedProposals[0]->user_uuid)->first();
+
+        $conversation = Conversation::where('employer_uuid', $job->user->uuid)
+                                    ->where('freelancer_uuid', $freelancer->uuid)
+                                    ->first();
+        $user = auth()->user();
+
+        $message = $user->messages()->create([
+            'conversation_id' => $conversation->id,
+            'message' => json_encode([
+                'job' => [
+                    'id' => $job->id,
+                    'status' => $request->status,
+                    'title' => $job->title
+                ],
+                'type' => 'job'
+            ])
+        ]);
+        
+        event(new NewMessage($message));
+
+        // Check if status is being updated to completed
+        if ($request->status === 'completed') {
+            // Get the accepted proposal
+            $acceptedProposal = $job->proposals()->where('status', 'accepted')->first();
+            
+            if (!$acceptedProposal) {
+                return response()->json([
+                    'message' => 'No accepted proposal found for this job'
+                ], 400);
+            }
+
+            try {
+                // Get the employer and freelancer
+                $employer = $job->user;
+                $freelancer = $acceptedProposal->user;
+
+                // Create or get wallets
+                $employerWallet = $this->paymentService->createOrGetWallet($employer);
+                $freelancerWallet = $this->paymentService->createOrGetWallet($freelancer);
+
+                // Check if employer has sufficient balance
+                // if ($employerWallet->escrow_balance <= $acceptedProposal->price) {
+                //     return response()->json([
+                //         'message' => 'Insufficient funds in employer wallet'
+                //     ], 400);
+                // }
+
+                // Create a transaction and transfer the funds
+                DB::transaction(function () use ($employerWallet, $freelancerWallet, $acceptedProposal, $job) {
+                    // Calculate platform fee (10%)
+                    $platformFee = $acceptedProposal->price * 0.10;
+                    $freelancerAmount = $acceptedProposal->price - $platformFee;
+
+                    $debitCharge = $this->paymentService->getStripeClient()->charges->create([
+                        'amount' => (int)($acceptedProposal->price * 100), // $50 -> 5000 cents
+                        'currency' => 'BGN', //$employerWallet->currency,
+                        'description' => "Debit for job #{$job->id}",
+                        'source' => $employerWallet->stripe_connect_id, // Employer's Express account as the source
+                    ]);
+
+                    $freelancerTransfer = $this->paymentService->getStripeClient()->transfers->create([
+                        'amount' => (int)($freelancerAmount * 100), // $45 -> 4500 cents
+                        'currency' => 'BGN', //$employerWallet->currency,
+                        'destination' => $freelancerWallet->stripe_connect_id,
+                        'metadata' => [
+                            'job_id' => $job->id,
+                            'proposal_id' => $acceptedProposal->id,
+                            'transfer_type' => 'freelancer_payment'
+                        ]
+                    ]);
+                    // $stripe = $this->paymentService->getStripeClient();
+                    // // Step 1 - Charge on platform
+                    // $charge = $stripe->charges->create([
+                    //     'amount' => (int)($freelancerAmount * 100),
+                    //     'currency' => 'bgn',
+                    //     'source' => 'tok_visa', // test token
+                    //     'description' => 'Payment from employer for job',
+                    // ]);
+                    
+                    // // Step 2 - Transfer to freelancer (from platform balance)
+                    // $transfer = $stripe->transfers->create([
+                    //     'amount' => (int)($freelancerAmount * 100), // freelancer share
+                    //     'currency' => 'bgn',
+                    //     'destination' => $freelancerWallet->stripe_connect_id,
+                    //     'transfer_group' => 'JOB_'.$job->id,
+                    // ]);                   
+
+                    // Record the transaction
+                    Transaction::create([
+                        'wallet_id' => $employerWallet->id,
+                        'job_id' => $job->id,
+                        'type' => Transaction::TYPE_ESCROW_RELEASE,
+                        'amount' => $acceptedProposal->price,
+                        'currency' => $employerWallet->currency,
+                        'status' => Transaction::STATUS_COMPLETED,
+                        'stripe_transfer_id' => $freelancerTransfer->id,
+                        'metadata' => [
+                            'proposal_id' => $acceptedProposal->id,
+                            'platform_fee' => $platformFee,
+                            'freelancer_amount' => $freelancerAmount
+                        ]
+                    ]);
+
+                    // Update wallets
+                    $employerWallet->escrow_balance -= $acceptedProposal->price;
+                    $employerWallet->save();
+
+                    $freelancerWallet->balance += $freelancerAmount;
+                    $freelancerWallet->save();
+                });
+
+            } catch (\Exception $e) {
+                return response()->json([
+                    'message' => 'Failed to process job completion payment',
+                    'error' => $e->getMessage()
+                ], 400);
+            }
+        }
+
+        $job->update($data);
 
         return new StatusResource(true);
     }

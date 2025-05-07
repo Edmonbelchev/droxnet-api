@@ -76,6 +76,8 @@ class ProposalController extends Controller
 
     public function update(ProposalRequest $request, Proposal $proposal)
     {
+        // "message": "SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '9c7706f5-6956-4e77-a0e0-b6cfe5ff91ba-9c773eaf-1133-4fa6-9e4f-...' for key 'conversations_freelancer_uuid_employer_uuid_unique' (Connection: mysql, SQL: insert into `conversations` (`employer_uuid`, `freelancer_uuid`, `updated_at`, `created_at`) values (9c773eaf-1133-4fa6-9e4f-2c711ac7a6d9, 9c7706f5-6956-4e77-a0e0-b6cfe5ff91ba, 2025-01-18 13:18:59, 2025-01-18 13:18:59))",
+
         Gate::authorize('update', $proposal);
 
         $proposal->update($request->validated());
@@ -109,7 +111,7 @@ class ProposalController extends Controller
         ]);
 
         if($proposal->status === 'accepted') {
-            Conversation::create(
+            Conversation::firstOrCreate(
                 [
                     'employer_uuid'    => $proposal->job->user->uuid,
                     'freelancer_uuid'=> $proposal->user->uuid

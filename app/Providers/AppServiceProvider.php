@@ -9,6 +9,7 @@ use App\Models\UserAward;
 use App\Models\UserProject;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Stripe\StripeClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,7 +18,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(StripeClient::class, function ($app) {
+            return new StripeClient(config('services.stripe.secret'));
+        });
     }
 
     /**

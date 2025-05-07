@@ -169,6 +169,12 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'sender_uuid', 'uuid');
     }
 
+    // Relation for user's wallet
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
     /**
      * Check if the user is saved by the authenticated user.
      */

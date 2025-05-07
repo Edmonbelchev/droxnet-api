@@ -31,4 +31,11 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'platform_fee_percentage' => (int)env('STRIPE_PLATFORM_FEE_PERCENTAGE', 10),
+        'currency' => env('STRIPE_CURRENCY', 'USD')
+    ],
 ];

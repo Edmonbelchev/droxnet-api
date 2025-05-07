@@ -9,7 +9,7 @@ class JobPolicy
 {
     public function store(User $user): bool
     {
-        return $user->role === "employer";
+        return $user->role === "employer" && $user?->wallet;
     }
 
     public function update(User $user, Job $job): bool
