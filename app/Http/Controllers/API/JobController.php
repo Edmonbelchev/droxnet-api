@@ -218,11 +218,11 @@ class JobController extends Controller
                 $freelancerWallet = $this->paymentService->createOrGetWallet($freelancer);
 
                 // Check if employer has sufficient balance
-                if ($employerWallet->escrow_balance <= $acceptedProposal->price) {
-                    return response()->json([
-                        'message' => 'Insufficient funds in employer wallet'
-                    ], 400);
-                }
+                // if ($employerWallet->escrow_balance <= $acceptedProposal->price) {
+                //     return response()->json([
+                //         'message' => 'Insufficient funds in employer wallet'
+                //     ], 400);
+                // }
 
                 // Create a transaction and transfer the funds
                 DB::transaction(function () use ($employerWallet, $freelancerWallet, $acceptedProposal, $job) {
@@ -247,6 +247,22 @@ class JobController extends Controller
                             'transfer_type' => 'freelancer_payment'
                         ]
                     ]);
+                    // $stripe = $this->paymentService->getStripeClient();
+                    // // Step 1 - Charge on platform
+                    // $charge = $stripe->charges->create([
+                    //     'amount' => (int)($freelancerAmount * 100),
+                    //     'currency' => 'bgn',
+                    //     'source' => 'tok_visa', // test token
+                    //     'description' => 'Payment from employer for job',
+                    // ]);
+                    
+                    // // Step 2 - Transfer to freelancer (from platform balance)
+                    // $transfer = $stripe->transfers->create([
+                    //     'amount' => (int)($freelancerAmount * 100), // freelancer share
+                    //     'currency' => 'bgn',
+                    //     'destination' => $freelancerWallet->stripe_connect_id,
+                    //     'transfer_group' => 'JOB_'.$job->id,
+                    // ]);                   
 
                     // Record the transaction
                     Transaction::create([

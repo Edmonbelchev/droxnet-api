@@ -120,7 +120,7 @@ class PaymentController extends Controller
         }
     }
 
-    public function addPaymentMethod(AddPaymentMethodRequest $request): UserPaymentMethodResource
+    public function addPaymentMethod(AddPaymentMethodRequest $request): UserPaymentMethodResource | JsonResponse
     {
         try {
             $paymentMethod = $this->paymentService->addPaymentMethod(
@@ -128,8 +128,7 @@ class PaymentController extends Controller
                 $request->validated('payment_method_id')
             );
 
-
-            return $paymentMethod;
+            return new UserPaymentMethodResource($paymentMethod);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to add payment method',

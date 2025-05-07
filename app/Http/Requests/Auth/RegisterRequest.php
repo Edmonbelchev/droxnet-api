@@ -24,8 +24,7 @@ class RegisterRequest extends FormRequest
                 Rule::unique(User::class, 'email')
             ],
             'password'    => [
-                'required', 'max:64', 'string',
-                Password::min(8)->uncompromised()
+                'required', 'max:64', 'string'
             ],
             'country' => ['present', 'string', 'max:64'],
             'role'    => ['required', 'string', Rule::in(['freelancer', 'employer'])],
