@@ -10,6 +10,7 @@ use App\Models\UserProject;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Stripe\StripeClient;
+use Illuminate\Support\Facades\Route;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,5 +36,9 @@ class AppServiceProvider extends ServiceProvider
             'job'          => Job::class,
             'proposal'     => Proposal::class,
         ]);
+
+        Route::middleware('api')
+            ->prefix('dashboard-api')
+            ->group(base_path('routes/dashboard-api.php'));
     }
 }

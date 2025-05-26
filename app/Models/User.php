@@ -69,6 +69,12 @@ class User extends Authenticatable
         ];
     }
 
+    // Relation for user's wallet
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class, 'user_uuid', 'uuid');
+    }
+
     // Scope for freelancer
     public function scopeFreelancer($query)
     {
@@ -167,12 +173,6 @@ class User extends Authenticatable
     public function messages()
     {
         return $this->hasMany(Message::class, 'sender_uuid', 'uuid');
-    }
-
-    // Relation for user's wallet
-    public function wallet()
-    {
-        return $this->hasOne(Wallet::class);
     }
 
     /**
